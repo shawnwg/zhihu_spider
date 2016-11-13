@@ -9,7 +9,7 @@ import os
 from pymongo import MongoClient
 from zhihu.settings import MONGO_URI, PROJECT_DIR
 from zhihu.items import ZhihuPeopleItem, ZhihuRelationItem
-from zhihu.tools.async import download_pic
+#from zhihu.tools.async import download_pic
 
 
 class ZhihuPipeline(object):
@@ -17,6 +17,7 @@ class ZhihuPipeline(object):
     存储数据
     """
     def __init__(self, mongo_uri, mongo_db, image_dir):
+        #直接在初始化函数中定义类的属性，并赋值
         self.mongo_uri = mongo_uri
         self.mongo_db = mongo_db
         self.image_dir = image_dir
@@ -46,13 +47,16 @@ class ZhihuPipeline(object):
         """
         collection = self.db['people']
         zhihu_id = item['zhihu_id']
+        #更新插入操作
         collection.update({'zhihu_id': zhihu_id},
                           dict(item), upsert=True)
 
+        #异步去下载图片
         image_url = item['image_url']
         if image_url and zhihu_id:
             image_path = os.path.join(self.image_dir, '{}.jpg'.format(zhihu_id))
-            download_pic.delay(image_url, image_path)
+            #暂时先不下载图片了
+            #download_pic.delay(image_url, image_path)
 
     def _process_relation(self, item):
         """

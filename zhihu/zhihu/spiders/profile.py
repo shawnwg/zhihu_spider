@@ -20,6 +20,7 @@ class ZhihuSipder(CrawlSpider):
 
     def __init__(self, *args, **kwargs):
         super(ZhihuSipder, self).__init__(*args, **kwargs)
+        #知乎的跨域访问
         self.xsrf = ''
 
     def start_requests(self):
@@ -28,7 +29,7 @@ class ZhihuSipder(CrawlSpider):
         """
         return [Request(
             "https://www.zhihu.com/#signin",
-            meta={'cookiejar': 1},
+            meta={'cookiejar': 1},#用于Cookie传递吗？
             callback=self.post_login
         )]
 
@@ -44,9 +45,9 @@ class ZhihuSipder(CrawlSpider):
             method='POST',
             meta={'cookiejar': response.meta['cookiejar']},
             formdata={
-                '_xsrf': self.xsrf,
-                'email': 'xxxxxxxxx',
-                'password': 'xxxxxxxxx',
+                '_xsrf': self.xsrf,#将这个值post回去验证
+                'email': '793061484@qq.com',
+                'password': 'greyireland123',
                 'remember_me': 'true'},
             callback=self.after_login
         )]
@@ -99,11 +100,13 @@ class ZhihuSipder(CrawlSpider):
             '//div[@class="body clearfix"]/img/@srcset'
         ).extract_first('')[0:-3]
 
+        #这里有两个URL，一个链接到关注我的人，一个链接到我关注的人
         follow_urls = selector.xpath(
             '//div[@class="zm-profile-side-following zg-clear"]/a[@class="item"]/@href'
         ).extract()
         for url in follow_urls:
             complete_url = 'https://{}{}'.format(self.allowed_domains[0], url)
+            #延迟执行或延迟加载？
             yield Request(complete_url,
                           meta={'cookiejar': response.meta['cookiejar']},
                           callback=self.parse_follow,
@@ -132,14 +135,17 @@ class ZhihuSipder(CrawlSpider):
         people_links = selector.xpath('//a[@class="zg-link"]/@href').extract()
         people_info = selector.xpath(
             '//span[@class="zm-profile-section-name"]/text()').extract_first()
+        #用参数控制显示的人数
         people_param = selector.xpath(
             '//div[@class="zh-general-list clearfix"]/@data-init').extract_first()
 
+        #c=a if a>b else b 简写方式
         re_result = re.search(r'\d+', people_info) if people_info else None
+        #关注的人数
         people_count = int(re_result.group()) if re_result else len(people_links)
         if not people_count:
             return
-
+        #Deserialize s (a str or unicode instance containing a JSON document) to a Python object.
         people_param = json.loads(people_param)
         post_url = 'https://{}/node/{}'.format(
             self.allowed_domains[0], people_param['nodename'])
@@ -153,10 +159,10 @@ class ZhihuSipder(CrawlSpider):
                 u'params': people_param[u'params']
             }
             payload[u'params'][u'offset'] = start
-            payload[u'params'] = json.dumps(payload[u'params'])
+            payload[u'params'] = json.dumps(payload[u'params'])#Serialize obj to a JSON formatted str.
             HEADER.update({'Referer': response.url})
             start += 20
-
+            #鼠标下拉之后，它自动加载数据
             yield Request(post_url,
                           method='POST',
                           meta={'cookiejar': response.meta['cookiejar']},

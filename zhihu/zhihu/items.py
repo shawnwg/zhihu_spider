@@ -42,9 +42,10 @@ class ZhihuRelationItem(Item):
 
     Attributes:
         zhihu_id 知乎id
-        user_list 用户列表
-        user_type 用户类型（1关注的人 2粉丝）
+        user_type 用户类型（1我关注的人 2关注我的人）
+        user_list 用户列表,id集合
+
     """
     zhihu_id = Field()
-    user_list = Field()
     user_type = Field()
+    user_list = Field()

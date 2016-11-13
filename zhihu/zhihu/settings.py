@@ -106,4 +106,4 @@ ITEM_PIPELINES = {
 }
 
 # 异步任务队列
-BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+#BROKER_URL = 'amqp://guest:guest@localhost:5672//'
